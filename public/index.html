@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Mancer - Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Location style (top right corner with just text enclosure) */
+        #location-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        /* Popup for location input */
+        .popup {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .popup form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        /* Links and buttons style */
+        .links a {
+            display: inline-block;    /* Ensures each link only takes up the space of the text */
+            margin: 10px 0;           /* Space between links */
+            padding: 10px 20px;       /* Padding around the text */
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .links a:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+
+        .search-input {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 20px;
+            width: 60%;
+        }
+
+        .search-btn {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .search-btn:hover {
+            background-color: #45a049;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Location Display (top right corner) -->
+    <div id="location-display">Location: Not Set</div>
+
+    <!-- Popup for location input -->
+    <div id="location-popup" class="popup" style="display: none;">
+        <h2>Please enter your location</h2>
+        <form id="location-form">
+            <input type="text" id="location-input" placeholder="Enter your location" required>
+            <button type="submit">Update Location</button>
+        </form>
+    </div>
+
+    <!-- Main content -->
+    <div id="content">
+        <h1>🥢🍝🥂 Menu Mancer 🥐🍰🍡</h1>
+
+        <!-- Search input -->
+        <input type="text" id="product-search" class="search-input" placeholder="Enter product to search..." required>
+
+        <button id="search-btn" class="search-btn">Search</button>
+
+        <!-- Links Section (Each link will only enclose its text) -->
+        <div class="links">
+            <a href="add-product.html">Add Product</a>
+            <a href="update-product.html">Update Product</a>
+            <a href="limited-product.html">Add/Update Limited-Time Product</a>
+        </div>
+    </div>
+
+    <script>
+        // Show location popup on page load if location is not set
+        window.onload = function() {
+            const location = sessionStorage.getItem('location'); // Use sessionStorage instead of localStorage
+            if (!location) {
+                // Show location popup if location is not set
+                document.getElementById('location-popup').style.display = 'flex';
+                document.getElementById('content').style.display = 'none';
+            } else {
+                // Display location in the top right corner if set
+                document.getElementById('location-display').innerText = `Location: ${location}`;
+                document.getElementById('content').style.display = 'block';
+            }
+        };
+
+        // Handle location form submission
+        document.getElementById('location-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const location = document.getElementById('location-input').value;
+            if (location) {
+                // Save location in sessionStorage (will last until page is closed)
+                sessionStorage.setItem('location', location);
+                document.getElementById('location-display').innerText = `Location: ${location}`;
+                document.getElementById('location-popup').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } else {
+                alert("Please enter a location.");
+            }
+        });
+
+        // Update location when the user clicks on the location display
+        document.getElementById('location-display').addEventListener('click', function() {
+            document.getElementById('location-popup').style.display = 'flex';
+        });
+
+        // Handle search button click
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const searchQuery = document.getElementById('product-search').value;
+            const location = sessionStorage.getItem('location');  // Retrieve location from sessionStorage
+
+            if (searchQuery && location) {
+                // Redirect to search.html with both the query and location as parameters
+                window.location.href = `search.html?q=${encodeURIComponent(searchQuery)}&location=${encodeURIComponent(location)}`;
+            } else if (!searchQuery) {
+                alert("Please enter a product to search.");
+            } else {
+                alert("Please enter a location.");
+            }
+        });
+    </script>
+</body>
+</html>

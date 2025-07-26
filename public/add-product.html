@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - Menu Mancer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #333;
+        }
+
+        #location-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        form {
+            display: inline-block;
+            text-align: left;
+            margin-top: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 12px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+        }
+
+        .links a {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Add Product</h1>
+    <div id="location-display">Location: Not Set</div>
+
+    <form id="add-product-form">
+        <input type="text" id="product-name" placeholder="Product Name" required>
+        <input type="number" id="product-price" placeholder="Price" required min="0">
+        <label for="shop-input">Shop (Select or Enter New Shop)</label>
+        <input type="text" id="shop-input" placeholder="Enter or Search Shop Name..." required>
+        <button type="submit">Add Product</button>
+        <p class="error-message" id="add-product-error-message"></p>
+    </form>
+
+    <div class="links">
+        <a href="index.html">Back to Home</a> | 
+        <a href="update-product.html">Go to Update Product</a> | 
+        <a href="limited-product.html">Go to Add/Update Limited-Time Product</a>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const location = sessionStorage.getItem('location');
+            if (location) {
+                document.getElementById('location-display').innerText = `Location: ${location}`;
+            } else {
+                document.getElementById('location-display').innerText = 'Location: Not Set';
+            }
+        };
+
+        document.getElementById('add-product-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const productName = document.getElementById('product-name').value.trim();
+            const productPrice = parseFloat(document.getElementById('product-price').value);
+            const shopName = document.getElementById('shop-input').value.trim();
+            const region = sessionStorage.getItem('location');
+            const errorMessage = document.getElementById('add-product-error-message');
+            errorMessage.textContent = '';
+
+            if (!region) {
+                errorMessage.textContent = "Location is not set. Please set your location on the homepage.";
+                return;
+            }
+
+            if (productPrice < 0) {
+                errorMessage.textContent = "Price cannot be negative.";
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: productName,
+                        price: productPrice,
+                        region: region,
+                        shop: shopName
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`✅ Product "${data.name}" added successfully!`);
+                    document.getElementById('add-product-form').reset();
+                } else {
+                    errorMessage.textContent = data.error || "Something went wrong.";
+                }
+            } catch (err) {
+                errorMessage.textContent = "Server error. Please try again later.";
+                console.error(err);
+            }
+        });
+    </script>
+
+</body>
+</html>

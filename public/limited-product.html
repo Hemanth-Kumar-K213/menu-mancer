@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Add/Update Limited-Time Product - Menu Mancer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            font-size: 32px;
+            color: #333;
+        }
+        #location-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        form {
+            display: inline-block;
+            text-align: left;
+            margin-top: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        input, label {
+            display: block;
+            width: 100%;
+            font-size: 16px;
+            margin: 10px 0 5px 0;
+        }
+        input {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        button {
+            padding: 12px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .links a {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .links a:hover {
+            background-color: #45a049;
+        }
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Add/Update Limited-Time Product</h1>
+
+<div id="location-display">Location: Not Set</div>
+
+<form id="limited-product-form">
+    <input type="text" id="limited-product-name" placeholder="Product Name" required />
+    <input type="number" id="limited-product-price" placeholder="Price" min="0" required />
+    <label for="shop-input">Shop (Select or Enter New Shop)</label>
+    <input type="text" id="shop-input" placeholder="Enter or Search Shop Name..." required />
+    <label for="expires-at">Expiration Date & Time:</label>
+    <input type="datetime-local" id="expires-at" required />
+    <button type="submit">Submit</button>
+    <p class="error-message" id="limited-error-message"></p>
+</form>
+
+<div class="links">
+    <a href="index.html">Back to Home</a> |
+    <a href="add-product.html">Go to Add Product</a> |
+    <a href="update-product.html">Go to Update Product</a>
+</div>
+
+<script>
+    // Display region from sessionStorage on top right
+    window.onload = function () {
+        const location = sessionStorage.getItem('location');
+        document.getElementById('location-display').innerText = location
+            ? `Location: ${location}`
+            : 'Location: Not Set';
+    };
+
+    document.getElementById('limited-product-form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const productName = document.getElementById('limited-product-name').value.trim();
+        const productPrice = Number(document.getElementById('limited-product-price').value);
+        const shopName = document.getElementById('shop-input').value.trim();
+        const expiresAt = document.getElementById('expires-at').value;
+        const region = sessionStorage.getItem('location') || 'Unknown';  // ✅ Use sessionStorage region
+        const errorMessage = document.getElementById('limited-error-message');
+
+        errorMessage.textContent = '';
+
+        if (!productName || !shopName || productPrice < 0 || !expiresAt) {
+            errorMessage.textContent = 'Please fill all fields correctly.';
+            return;
+        }
+
+        const expiryDate = new Date(expiresAt);
+        if (expiryDate <= new Date()) {
+            errorMessage.textContent = 'Expiration date and time must be in the future.';
+            return;
+        }
+
+        try {
+            const newLimitedProduct = {
+                name: productName,
+                price: productPrice,
+                shop: shopName,
+                region,  // ✅ Include region in request body
+                expiresAt: expiryDate.toISOString(),
+            };
+
+            const response = await fetch('/api/products/limited', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newLimitedProduct),
+            });
+
+            if (!response.ok) {
+                const errorResp = await response.json();
+                throw new Error(errorResp.error || 'Failed to add/update limited-time product.');
+            }
+
+            alert(`Limited-Time Product "${productName}" at ${shopName} set to expire on ${expiryDate.toLocaleString()}.`);
+            this.reset();
+        } catch (error) {
+            errorMessage.textContent = error.message;
+        }
+    });
+</script>
+
+</body>
+</html>

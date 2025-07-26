@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Mancer - Search Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .product-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .product-list li {
+            margin: 10px;
+            padding: 10px;
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .product-list li span {
+            font-weight: bold;
+        }
+
+        .back-btn {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍽️ Search Results</h1>
+
+    <!-- Display Search Query and Location -->
+    <p>Showing results for: <span id="search-query"></span> in <span id="location"></span></p>
+
+    <!-- List of Products -->
+    <ul class="product-list" id="product-list">
+        <!-- Products will be injected here by JavaScript -->
+    </ul>
+
+    <!-- Back Button -->
+    <button class="back-btn" onclick="window.location.href='index.html'">Back to Home</button>
+
+    <script>
+        // Function to extract query parameters from the URL
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Function to fetch products based on the query and location
+        async function fetchProducts() {
+            const searchQuery = getQueryParam('q');  // fixed from 'query' to 'q'
+            const location = sessionStorage.getItem('location'); // Get location from sessionStorage
+
+            // Set search query and location in the page
+            document.getElementById('search-query').innerText = searchQuery || 'No query entered';
+            document.getElementById('location').innerText = location || 'No location set';
+
+            if (!searchQuery || !location) {
+                alert("Search query or location is missing!");
+                return;
+            }
+
+            try {
+                // Updated: send correct query parameters expected by backend
+                const res = await fetch(`/api/products?q=${encodeURIComponent(searchQuery)}&location=${encodeURIComponent(location)}`);
+                const products = await res.json();
+
+                const productList = document.getElementById('product-list');
+                productList.innerHTML = '';  // Clear any previous results
+
+                if (products.length > 0) {
+                    // Display products in a list
+                    products.forEach(product => {
+                        const productItem = document.createElement('li');
+                        productItem.innerHTML = `
+                            <span>${product.name}</span><br>
+                            Price: ₹${product.price} <br>
+                            Region: ${product.region} <br>
+                            Shop: ${product.shop}
+                        `;
+                        productList.appendChild(productItem);
+                    });
+                } else {
+                    productList.innerHTML = '<li>No products found for your search.</li>';
+                }
+            } catch (err) {
+                console.error('Failed to fetch products:', err);
+                alert('Error fetching products. Please try again later.');
+            }
+        }
+
+        // Run the fetchProducts function when the page loads
+        window.onload = fetchProducts;
+    </script>
+
+</body>
+</html>
